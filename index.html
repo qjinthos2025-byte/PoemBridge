@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoemBridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="farolillos"><span>🏮</span><span>🏮</span></div>
+  <h1>PoemBridge</h1>
+  <p>诗桥 · Lector de poesía china</p>
+  <div id="cuenta"><span id="usuario"></span><button id="entrar" type="button">Entrar</button><button id="salir" type="button" class="suave" hidden>Salir</button></div>
+</header>
+
+<nav id="menu">
+  <button data-sec="imagen" class="activo">📷 Imagen</button>
+  <button data-sec="buscar">🔎 Buscar</button>
+  <button data-sec="poema">📜 Poema</button>
+  <button data-sec="pinyin">🔤 Pinyin</button>
+  <button data-sec="traducir">🌐 Traducir</button>
+  <button data-sec="voz">🔊 Escuchar</button>
+</nav>
+
+<div class="pagina">
+  <aside class="izq">
+    <article class="lado" data-poema="床前明月光&#10;疑是地上霜&#10;举头望明月&#10;低头思故乡" title="Clic para cargarlo"><h3>静夜思</h3><div class="versos"><div>床前明月光</div><div>疑是地上霜</div><div>举头望明月</div><div>低头思故乡</div></div><small>李白</small></article>
+    <article class="lado" data-poema="春眠不觉晓&#10;处处闻啼鸟&#10;夜来风雨声&#10;花落知多少" title="Clic para cargarlo"><h3>春晓</h3><div class="versos"><div>春眠不觉晓</div><div>处处闻啼鸟</div><div>夜来风雨声</div><div>花落知多少</div></div><small>孟浩然</small></article>
+  </aside>
+
+  <main>
+    <section id="imagen" class="sec">
+      <select id="orientacion">
+        <option value="horizontal">Horizontal</option>
+        <option value="vertical">Vertical, de derecha a izquierda</option>
+      </select>
+      <input type="file" id="archivo" accept="image/*">
+      <canvas id="lienzo"></canvas>
+      <button id="leer" type="button">Leer</button>
+      <p id="estado"></p>
+      <div id="analisis" hidden>
+        <div class="opciones">
+          <label><input type="checkbox" id="verLineas" checked> Líneas</label>
+          <label><input type="checkbox" id="verLetras" checked> Letras</label>
+          <span class="leyenda">Confianza: <i class="alta"></i>alta <i class="media"></i>media <i class="baja"></i>baja</span>
+        </div>
+        <div id="listaLineas"></div>
+        <p id="detalle" class="aviso">Pulsa una letra para ver su confianza y alternativas.</p>
+        <button id="usar" type="button">Usar en Poema</button>
+      </div>
+    </section>
+
+    <section id="buscar" class="sec" hidden>
+      <select id="fuente"><option value="todos">Buscar en todo</option><option value="mios">Mis poemas (mi cuenta)</option><option value="biblioteca">Biblioteca</option></select>
+      <input type="text" id="consulta" placeholder="Busca por título, autor o versos (中文, español, pinyin). Prueba: luna, río, primavera">
+      <div id="resultados"></div>
+    </section>
+
+    <section id="poema" class="sec" hidden>
+      <input type="text" id="titulo" placeholder="Título del poema (opcional)">
+      <textarea id="texto" placeholder="Escribe o pega el poema, un verso por línea (o elige uno de los lados)"></textarea>
+      <button id="invertir" type="button">Invertir versos</button>
+      <button id="borrar" type="button" class="suave">Borrar</button>
+      <button id="fijar" type="button">📌 Añadir a los lados</button>
+      <button id="nube" type="button">☁ Guardar en mi cuenta</button>
+      <p id="msgLado" class="aviso"></p>
+    </section>
+
+    <section id="pinyin" class="sec" hidden>
+      <div id="salidaPinyin" class="poema"></div>
+    </section>
+
+    <section id="traducir" class="sec" hidden>
+      <select id="elegirPoema"></select>
+      <p id="avisoTrad" class="aviso"></p>
+      <div id="traduccion"></div>
+    </section>
+
+    <section id="voz" class="sec" hidden>
+      <button id="hablar" type="button">🔊 Escuchar poema</button>
+      <button id="parar" type="button" class="suave">Parar</button>
+      <p id="aviso"></p>
+    </section>
+    <p class="sello">诗</p>
+  </main>
+
+  <aside class="der">
+    <article class="lado" data-poema="白日依山尽&#10;黄河入海流&#10;欲穷千里目&#10;更上一层楼" title="Clic para cargarlo"><h3>登鹳雀楼</h3><div class="versos"><div>白日依山尽</div><div>黄河入海流</div><div>欲穷千里目</div><div>更上一层楼</div></div><small>王之涣</small></article>
+    <article class="lado" data-poema="红豆生南国&#10;春来发几枝&#10;愿君多采撷&#10;此物最相思" title="Clic para cargarlo"><h3>相思</h3><div class="versos"><div>红豆生南国</div><div>春来发几枝</div><div>愿君多采撷</div><div>此物最相思</div></div><small>王维</small></article>
+  </aside>
+</div>
+
+<dialog id="dlgCuenta">
+  <div class="cuenta-caja">
+    <div class="cuenta-lado">
+      <span class="sello">诗</span>
+      <div class="versos">床前明月光<br>疑是地上霜<br>举头望明月<br>低头思故乡</div>
+      <small>李白 · 静夜思</small>
+    </div>
+    <form id="formCuenta" class="cuenta-form" novalidate>
+      <button id="cerrarDlg" type="button" class="cerrar" aria-label="Cerrar">×</button>
+      <h3 id="tituloCuenta">Bienvenido de nuevo</h3>
+      <p class="sub" id="subCuenta">Entra para guardar y buscar tus poemas.</p>
+      <div class="pestanas" role="tablist">
+        <button type="button" id="tabEntrar" class="activa" role="tab">Entrar</button>
+        <button type="button" id="tabCrear" role="tab">Crear cuenta</button>
+      </div>
+      <label for="correo">Correo electrónico</label>
+      <input type="email" id="correo" placeholder="tu@correo.com" autocomplete="email" required>
+      <label for="clave">Contraseña</label>
+      <div class="clave-fila">
+        <input type="password" id="clave" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required>
+        <button type="button" id="verClave" class="suave">Ver</button>
+      </div>
+      <p id="errCuenta" class="aviso" role="alert"></p>
+      <button id="btnLogin" type="submit" class="grande">Entrar</button>
+    </form>
+  </div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.26.0/dist/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="poemas.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

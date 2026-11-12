@@ -1,0 +1,112 @@
+:root{--tinta:#1f2622;--papel:#eef0e8;--hoja:#fbfbf7;--cinabrio:#b0291f;--jade:#3d6a5c;--oro:#b8923e;--borde:#d3d6c8;--suave:#66705f}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Noto Serif SC",Georgia,"Songti SC",serif;color:var(--tinta);line-height:1.65;min-height:100vh;
+  background:linear-gradient(180deg,#e4e8dc 0,var(--papel) 320px)}
+:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+header{position:relative;text-align:center;padding:1.6rem 1rem 1.2rem;background:var(--tinta);color:#f3efe2;border-bottom:3px solid var(--oro)}
+header h1{margin:0;font-family:"Ma Shan Zheng","KaiTi",serif;font-size:3.2rem;font-weight:400;letter-spacing:.1em}
+header p{margin:0;color:#c9cdbd;font-size:.95rem}
+.farolillos{position:absolute;inset:0 auto auto 0;width:100%;display:flex;justify-content:space-between;padding:0 max(1rem,calc(50% - 380px));font-size:1.7rem;pointer-events:none}
+.farolillos span{transform-origin:top center;animation:balanceo 4s ease-in-out infinite}
+.farolillos span:last-child{animation-delay:2s}
+@keyframes balanceo{50%{transform:rotate(7deg)}}
+@media(prefers-reduced-motion:reduce){.farolillos span{animation:none}}
+nav{display:flex;justify-content:center;flex-wrap:wrap;gap:.3rem 1.4rem;padding:.3rem;background:var(--hoja);border-bottom:1px solid var(--borde);position:sticky;top:0;z-index:5}
+nav button{background:none;color:var(--suave);border:0;border-bottom:2px solid transparent;border-radius:0;padding:.6rem .2rem;margin:0}
+nav button:hover{color:var(--tinta);background:none}
+nav button.activo{color:var(--cinabrio);border-bottom-color:var(--cinabrio)}
+
+.pagina{display:grid;grid-template-columns:1fr minmax(0,760px) 1fr;gap:1.2rem;padding:1.6rem 1rem}
+main{position:relative}
+.sec{background:var(--hoja);border:1px solid var(--borde);border-radius:6px;padding:1.4rem;box-shadow:0 10px 30px -18px rgba(31,38,34,.45)}
+.sec[hidden]{display:none}
+select,input[type=file],input[type=text],textarea{width:100%;margin:.4rem 0;padding:.7rem;border:1px solid var(--borde);border-radius:6px;font:inherit;background:#fff;color:inherit}
+textarea{min-height:240px;font-size:1.4rem;resize:vertical}
+button{background:var(--cinabrio);color:#fff;border:0;border-radius:6px;padding:.6rem 1.1rem;margin:.4rem .4rem .4rem 0;font:inherit;cursor:pointer;transition:background .15s}
+button:hover{background:#8f1f17}
+button.suave{background:transparent;color:var(--cinabrio);border:1px solid var(--cinabrio)}
+button.suave:hover{background:#f6e9e6}
+button:disabled{opacity:.5;cursor:default}
+#lienzo{display:none;max-width:100%;height:auto;border-radius:4px;margin:.6rem 0;cursor:crosshair;touch-action:none;box-shadow:0 0 0 1px var(--borde)}
+#estado,#aviso{color:var(--suave);font-size:.9rem}
+.poema{text-align:center;font-size:2rem;line-height:2.8}
+.poema rt{font-size:.6rem;color:var(--cinabrio)}
+.sello{width:44px;height:44px;margin:1.2rem auto 0;background:var(--cinabrio);color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:"Ma Shan Zheng",serif;font-size:1.6rem;transform:rotate(-4deg)}
+
+aside{display:flex;flex-direction:column;gap:1.2rem;align-items:center}
+.izq{align-items:flex-end}.der{align-items:flex-start}
+.lado{cursor:pointer;text-align:center;padding:.9rem .7rem;border:1px solid var(--borde);border-top:3px solid var(--cinabrio);border-radius:4px;background:var(--hoja);transition:border-color .2s,box-shadow .2s;min-width:150px;position:relative}
+.lado:hover{border-color:var(--oro);border-top-color:var(--cinabrio);box-shadow:0 10px 22px -14px rgba(31,38,34,.6)}
+.lado h3{margin:0 0 .6rem;font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;color:var(--cinabrio);font-size:1.3rem}
+.versos{writing-mode:vertical-rl;display:inline-block;font-family:"Ma Shan Zheng","KaiTi","STKaiti",serif;font-size:1.25rem;line-height:1.9;vertical-align:top}
+.lado small{display:block;margin-top:.4rem;color:var(--suave)}
+@media(max-width:1000px){
+  .pagina{grid-template-columns:1fr}
+  aside{flex-direction:row;flex-wrap:wrap;justify-content:center;order:2}
+  .izq,.der{align-items:center}
+}
+.quitar{position:absolute;top:2px;right:5px;background:none;color:var(--cinabrio);border:0;padding:0 .3rem;margin:0;font-size:1.2rem;line-height:1}
+.quitar:hover{background:none;color:#000}
+.aviso{color:var(--suave);font-size:.9rem;min-height:1.3em}
+
+.resultado{border:1px solid var(--borde);border-left:3px solid var(--oro);border-radius:4px;padding:.8rem 1rem;margin:.6rem 0;background:#fff}
+.resultado h3{margin:0;font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;font-size:1.5rem;color:var(--cinabrio)}
+.resultado .es{color:var(--suave);font-size:.95rem}
+.resultado .primero{font-size:1.15rem;margin:.3rem 0}
+.resultado button{padding:.4rem .8rem;font-size:.9rem}
+#traduccion h3{margin:.2rem 0;font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;font-size:1.8rem;color:var(--cinabrio)}
+.fila{border-left:3px solid var(--oro);padding:.2rem 0 .2rem .8rem;margin:.7rem 0}
+.fila .zh{font-size:1.5rem}
+.fila .py{color:var(--cinabrio);font-size:.9rem}
+.fila .esp{font-style:italic}
+.nota{margin-top:1rem;padding:.7rem 1rem;background:#eef2ea;border-left:3px solid var(--jade);border-radius:4px;color:#33403a}
+
+/* Análisis de líneas y letras (Tesseract) */
+#analisis{margin-top:.8rem;border-top:1px solid var(--borde);padding-top:.8rem}
+.opciones{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;align-items:center;font-size:.9rem;color:var(--suave)}
+.opciones label{cursor:pointer}
+.leyenda i{display:inline-block;width:.8rem;height:.8rem;border-radius:2px;margin:0 .25rem 0 .6rem;vertical-align:-1px;background:var(--c)}
+.alta{--c:#2f8f5b}.media{--c:#d89a1d}.baja{--c:#c23b2e}
+.linea{display:flex;align-items:center;gap:.8rem;padding:.4rem .6rem;margin:.4rem 0;border:1px solid var(--borde);border-left:3px solid #2b6cb0;border-radius:4px;background:#fff}
+.linea .num{flex:none;font-size:.8rem;color:var(--suave);min-width:5.5rem}
+.letras{display:flex;flex-wrap:wrap;gap:.25rem}
+.letra{font:inherit;font-size:1.5rem;line-height:1.2;padding:.1rem .35rem;margin:0;color:var(--tinta);background:#fff;border:0;border-bottom:3px solid var(--c);border-radius:3px}
+.letra:hover{background:#f1f3ea}
+.letra.elegida{background:#fbf0d2}
+#detalle{min-height:1.6em;margin:.2rem 0 .4rem}
+
+#cuenta{position:absolute;right:1rem;bottom:.6rem;display:flex;gap:.5rem;align-items:center;font-size:.85rem;color:#c9cdbd}
+#cuenta button{padding:.3rem .7rem;margin:0;font-size:.85rem}
+#cuenta .suave{color:#f3efe2;border-color:#f3efe2}
+#cuenta .suave:hover{background:rgba(255,255,255,.12)}
+.etiqueta{display:inline-block;font-size:.75rem;padding:0 .45rem;margin-right:.4rem;border-radius:3px;background:var(--jade);color:#fff;vertical-align:2px}
+
+dialog{border:0;padding:0;width:min(94vw,720px);background:transparent;color:var(--tinta);overflow:visible}
+dialog::backdrop{background:rgba(31,38,34,.6);backdrop-filter:blur(3px)}
+dialog[open]{animation:aparece .25s ease-out}
+@keyframes aparece{from{opacity:0;transform:translateY(10px)}}
+@media(prefers-reduced-motion:reduce){dialog[open]{animation:none}}
+.cuenta-caja{display:grid;grid-template-columns:240px 1fr;border-radius:10px;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.6);background:var(--hoja)}
+.cuenta-lado{background:var(--tinta);color:#f3efe2;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1rem;padding:1.6rem 1rem;border-right:3px solid var(--oro);
+  background-image:radial-gradient(circle at 50% 0,rgba(184,146,62,.22),transparent 60%)}
+.cuenta-lado .sello{margin:0;width:54px;height:54px;font-size:2rem}
+.cuenta-lado .versos{font-size:1.6rem;line-height:2.1;color:#f3efe2}
+.cuenta-lado small{color:#c9cdbd}
+.cuenta-form{position:relative;padding:1.8rem 1.8rem 1.5rem}
+.cuenta-form h3{margin:0;font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;font-size:2rem;color:var(--cinabrio);line-height:1.2}
+.cuenta-form .sub{margin:.2rem 0 1rem;color:var(--suave);font-size:.92rem}
+.cuenta-form label{display:block;margin-top:.7rem;font-size:.85rem;color:var(--suave)}
+.cuenta-form input{margin:.25rem 0}
+.cuenta-form input:focus{border-color:var(--jade);outline:2px solid rgba(61,106,92,.25)}
+.cerrar{position:absolute;top:.5rem;right:.6rem;margin:0;padding:0 .5rem;background:none;color:var(--suave);font-size:1.6rem;line-height:1.4}
+.cerrar:hover{background:none;color:var(--tinta)}
+.pestanas{display:flex;border-bottom:1px solid var(--borde);margin-bottom:.4rem}
+.pestanas button{flex:1;margin:0;border-radius:0;background:none;color:var(--suave);border-bottom:2px solid transparent;padding:.55rem}
+.pestanas button:hover{background:none;color:var(--tinta)}
+.pestanas button.activa{color:var(--cinabrio);border-bottom-color:var(--cinabrio)}
+.clave-fila{display:flex;gap:.4rem;align-items:center}
+.clave-fila button{margin:0;padding:.55rem .8rem}
+.grande{width:100%;margin:.4rem 0 0;padding:.8rem;font-size:1.05rem}
+#errCuenta{min-height:1.4em;margin:.5rem 0 0;color:var(--cinabrio)}
+#errCuenta.ok{color:var(--jade)}
+@media(max-width:640px){.cuenta-caja{grid-template-columns:1fr}.cuenta-lado{display:none}}
