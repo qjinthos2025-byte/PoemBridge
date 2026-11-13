@@ -486,16 +486,24 @@ function iniciarNube() {
     return;
   }
   nube.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  nube.sb.auth.onAuthStateChange(function (_e, ses) {
-    nube.user = ses ? ses.user : null; nube.cache = null;
-    $("entrar").textContent = nube.user ? "Mi cuenta" : "Entrar";
-    $("salir").hidden = !nube.user;
-    $("usuario").textContent = nube.user ? nube.user.email : "";
-    setTimeout(function () {
-      if (!$("vistaCuenta").hidden) actualizarCuenta();
-      if (!$("buscar").hidden) mostrarBusqueda();
-    }, 0);
-  });
+  nube.sb.auth.onAuthStateChange(function (_e, ses) { aplicarSesion(ses ? ses.user : null); });
+}
+function aplicarSesion(user) {
+  nube.user = user; nube.cache = null;
+  $("entrar").textContent = user ? "Mi cuenta" : "Entrar";
+  $("salir").hidden = !user;
+  $("usuario").textContent = user ? user.email : "";
+  setTimeout(function () {
+    if (!$("vistaCuenta").hidden) actualizarCuenta();
+    if (!$("buscar").hidden) mostrarBusqueda();
+  }, 0);
+}
+// Cierra la sesión en este navegador (sin depender de la red) y vuelve a la web
+async function salir() {
+  var r = await nube.sb.auth.signOut({ scope: "local" });
+  if (r.error) console.error(r.error);
+  aplicarSesion(null);
+  verCuenta(false);
 }
 // Pantalla de cuenta: formulario si no hay sesión, resumen si la hay
 function verCuenta(si) {
@@ -550,9 +558,8 @@ $("verClave").addEventListener("click", function () {
   $("clave").type = oculta ? "text" : "password";
   $("verClave").textContent = oculta ? "Ocultar" : "Ver";
 });
-["salir", "salirPanel"].forEach(function (id) {
-  $(id).addEventListener("click", function () { nube.sb.auth.signOut(); });
-});
+$("salir").addEventListener("click", salir);
+$("salirPanel").addEventListener("click", salir);
 var MENSAJES = {
   "Invalid login credentials": "Correo o contraseña incorrectos.",
   "User already registered": "Ya existe una cuenta con ese correo. Prueba a entrar.",
