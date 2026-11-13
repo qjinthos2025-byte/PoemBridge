@@ -81,32 +81,38 @@ aside{display:flex;flex-direction:column;gap:1.2rem;align-items:center}
 #cuenta .suave:hover{background:rgba(255,255,255,.12)}
 .etiqueta{display:inline-block;font-size:.75rem;padding:0 .45rem;margin-right:.4rem;border-radius:3px;background:var(--jade);color:#fff;vertical-align:2px}
 
-dialog{border:0;padding:0;width:min(94vw,720px);background:transparent;color:var(--tinta);overflow:visible}
-dialog::backdrop{background:rgba(31,38,34,.6);backdrop-filter:blur(3px)}
-dialog[open]{animation:aparece .25s ease-out}
-@keyframes aparece{from{opacity:0;transform:translateY(10px)}}
-@media(prefers-reduced-motion:reduce){dialog[open]{animation:none}}
-.cuenta-caja{display:grid;grid-template-columns:240px 1fr;border-radius:10px;overflow:hidden;box-shadow:0 30px 60px -20px rgba(0,0,0,.6);background:var(--hoja)}
-.cuenta-lado{background:var(--tinta);color:#f3efe2;display:flex;flex-direction:column;align-items:center;justify-content:space-between;gap:1rem;padding:1.6rem 1rem;border-right:3px solid var(--oro);
-  background-image:radial-gradient(circle at 50% 0,rgba(184,146,62,.22),transparent 60%)}
-.cuenta-lado .sello{margin:0;width:54px;height:54px;font-size:2rem}
-.cuenta-lado .versos{font-size:1.6rem;line-height:2.1;color:#f3efe2}
-.cuenta-lado small{color:#c9cdbd}
-.cuenta-form{position:relative;padding:1.8rem 1.8rem 1.5rem}
-.cuenta-form h3{margin:0;font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;font-size:2rem;color:var(--cinabrio);line-height:1.2}
-.cuenta-form .sub{margin:.2rem 0 1rem;color:var(--suave);font-size:.92rem}
-.cuenta-form label{display:block;margin-top:.7rem;font-size:.85rem;color:var(--suave)}
-.cuenta-form input{margin:.25rem 0}
-.cuenta-form input:focus{border-color:var(--jade);outline:2px solid rgba(61,106,92,.25)}
-.cerrar{position:absolute;top:.5rem;right:.6rem;margin:0;padding:0 .5rem;background:none;color:var(--suave);font-size:1.6rem;line-height:1.4}
-.cerrar:hover{background:none;color:var(--tinta)}
+/* Vista de cuenta (pantalla completa) */
+body.en-cuenta header,body.en-cuenta nav,body.en-cuenta .pagina{display:none}
+#vistaCuenta{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}
+#vistaCuenta[hidden]{display:none}
+.cuenta-arte{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.6rem;padding:3rem 1.5rem;background:var(--tinta);color:#f3efe2;border-right:3px solid var(--oro)}
+.luna{position:absolute;top:50%;left:50%;width:min(70%,420px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-58%);background:radial-gradient(circle at 36% 32%,#f7f1dc,#e4d9b0 55%,#b9a870);opacity:.2;box-shadow:0 0 140px 30px rgba(230,220,180,.5)}
+.cuenta-versos{position:relative;writing-mode:vertical-rl;font-family:"Ma Shan Zheng","KaiTi","STKaiti",serif;font-size:clamp(2rem,4.4vw,3.6rem);line-height:2.1;letter-spacing:.08em}
+.cuenta-firma{position:relative;margin:0;color:#c9cdbd;font-size:.95rem}
+.cuenta-arte .sello{position:relative;margin:0}
+.cuenta-panel{display:flex;align-items:center;padding:2rem clamp(1.4rem,5vw,4rem);background:var(--hoja)}
+.cuenta-interior{width:100%;max-width:420px;margin:0 auto}
+.enlace{background:none;color:var(--suave);padding:0;margin:0 0 2.2rem;font-size:.9rem}
+.enlace:hover{background:none;color:var(--tinta)}
+.cuenta-interior h2{margin:0;font-family:"Ma Shan Zheng","KaiTi",serif;font-weight:400;font-size:2.6rem;line-height:1.15;color:var(--cinabrio)}
+.cuenta-interior .sub{margin:.3rem 0 1.2rem;color:var(--suave)}
 .pestanas{display:flex;border-bottom:1px solid var(--borde);margin-bottom:.4rem}
 .pestanas button{flex:1;margin:0;border-radius:0;background:none;color:var(--suave);border-bottom:2px solid transparent;padding:.55rem}
 .pestanas button:hover{background:none;color:var(--tinta)}
 .pestanas button.activa{color:var(--cinabrio);border-bottom-color:var(--cinabrio)}
+#formCuenta label{display:block;margin-top:.8rem;font-size:.85rem;color:var(--suave)}
+#formCuenta input{width:100%;margin:.25rem 0;padding:.7rem;border:1px solid var(--borde);border-radius:6px;font:inherit;background:#fff;color:inherit}
+#formCuenta input:focus{border-color:var(--jade);outline:2px solid rgba(61,106,92,.25)}
 .clave-fila{display:flex;gap:.4rem;align-items:center}
-.clave-fila button{margin:0;padding:.55rem .8rem}
-.grande{width:100%;margin:.4rem 0 0;padding:.8rem;font-size:1.05rem}
-#errCuenta{min-height:1.4em;margin:.5rem 0 0;color:var(--cinabrio)}
+.clave-fila button{margin:0;padding:.65rem .9rem}
+.grande{width:100%;margin:.6rem 0 0;padding:.8rem;font-size:1.05rem}
+#errCuenta{min-height:1.4em;margin:.6rem 0 0;color:var(--cinabrio)}
 #errCuenta.ok{color:var(--jade)}
-@media(max-width:640px){.cuenta-caja{grid-template-columns:1fr}.cuenta-lado{display:none}}
+.ventajas{list-style:none;margin:1.8rem 0 0;padding:0;color:var(--suave);font-size:.92rem}
+.ventajas li{padding:.1rem 0 .1rem .9rem;border-left:3px solid var(--jade);margin-top:.7rem}
+#correoSesion{margin:.4rem 0;font-size:1.1rem;word-break:break-all}
+@media(max-width:860px){
+  #vistaCuenta{grid-template-columns:1fr}
+  .cuenta-arte{padding:2rem 1rem;border-right:0;border-bottom:3px solid var(--oro)}
+  .cuenta-versos{font-size:2rem}
+}
