@@ -413,7 +413,12 @@ async function verificarConIA(recorte, res, info, vertical) {
     undo.hidden = false;
   } catch (err) {
     console.error(err);
-    est.textContent = "No se pudo verificar con la IA. Se mantiene la lectura de Tesseract.";
+    var detalle = "";
+    try { // la respuesta de la función trae el motivo
+      if (err.context && err.context.json) { var j = await err.context.json(); detalle = j.error || j.message || ""; }
+    } catch (e) {}
+    if (!detalle) detalle = err.message || "";
+    est.textContent = "No se pudo verificar con la IA" + (detalle ? " (" + detalle + ")" : "") + ". Se mantiene la lectura de Tesseract.";
   }
 }
 $("iaDeshacer").addEventListener("click", function () {
