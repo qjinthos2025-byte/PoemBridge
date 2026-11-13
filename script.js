@@ -1,5 +1,5 @@
 var $ = function (id) { return document.getElementById(id); };
- 
+
 // ---------- Menú ----------
 function ir(nombre) {
   document.querySelectorAll(".sec").forEach(function (s) { s.hidden = s.id !== nombre; });
@@ -13,13 +13,13 @@ function ir(nombre) {
 document.querySelectorAll("#menu button").forEach(function (b) {
   b.addEventListener("click", function () { ir(b.dataset.sec); });
 });
- 
+
 // ---------- Leer imagen (OCR con Tesseract, verso a verso) ----------
 var imgActual = null, sel = null, arrastrando = false, analisis = null, geoRecorte = null, elegida = null;
 var RE_ZH = /[\u3400-\u9fff\uf900-\ufaff，。！？、；：《》“”‘’（）]/;
 var NO_ZH = /[^\u3400-\u9fff\uf900-\ufaff，。！？、；：《》“”‘’（）]/g;
 var lienzo = $("lienzo"), ctx = lienzo.getContext("2d");
- 
+
 // Dibuja la foto y, encima, el rectángulo rojo de la zona elegida
 function dibujar() {
   if (!imgActual) return;
@@ -56,7 +56,7 @@ lienzo.addEventListener("pointerup", function () {
   arrastrando = false;
   if (sel && (Math.abs(sel.x1 - sel.x0) < 20 || Math.abs(sel.y1 - sel.y0) < 20)) { sel = null; dibujar(); }
 });
- 
+
 // 1. Recorta la zona elegida (sin agrandar)
 function recorteCanvas() {
   var x = 0, y = 0, w = imgActual.width, h = imgActual.height;
@@ -72,7 +72,7 @@ function recorteCanvas() {
   geoRecorte = { x: x, y: y, f: f };
   return c;
 }
- 
+
 // 2. Blanco y negro: se quita el color del fondo y los dibujos claros
 function umbralOtsu(gris) {
   var hist = new Array(256).fill(0), total = gris.length, suma = 0, i;
@@ -89,7 +89,7 @@ function umbralOtsu(gris) {
   }
   return umbral;
 }
- 
+
 function binarizar(c) {
   var d = c.getContext("2d").getImageData(0, 0, c.width, c.height).data;
   var n = c.width * c.height, gris = new Uint8Array(n), i;
@@ -99,7 +99,7 @@ function binarizar(c) {
   if (oscuros > n / 2) for (i = 0; i < n; i++) bin[i] = 1 - bin[i]; // texto claro sobre fondo oscuro
   return { bin: bin, w: c.width, h: c.height };
 }
- 
+
 // 3. Busca las franjas de texto: cada verso (o columna) es una franja
 function perfil(b, vertical) {
   var p = new Array(vertical ? b.w : b.h).fill(0), x, y;
@@ -108,7 +108,7 @@ function perfil(b, vertical) {
   }
   return p;
 }
- 
+
 function encontrarBandas(p) {
   var max = Math.max.apply(null, p), um = Math.max(2, 0.08 * max), res = [], ini = -1;
   for (var i = 0; i < p.length; i++) {
@@ -118,7 +118,7 @@ function encontrarBandas(p) {
   if (ini >= 0) res.push({ ini: ini, fin: p.length - 1 });
   return res.filter(function (b) { return b.fin - b.ini + 1 >= 6; });
 }
- 
+
 // 4. Se quedan solo las franjas grandes: el pinyin y las notas son más finos y se descartan
 function bandasDeTexto(bandas) {
   if (!bandas.length) return [];
@@ -126,7 +126,7 @@ function bandasDeTexto(bandas) {
   var ref = alt[Math.min(alt.length - 1, Math.floor(alt.length * 0.75))];
   return bandas.filter(function (b) { return b.fin - b.ini + 1 >= ref * 0.6; });
 }
- 
+
 // 5. Recorta cada franja, la agranda y le pone margen blanco para leerla sola
 function canvasBanda(b, banda, vertical) {
   var lo = Infinity, hi = -1, x, y;
@@ -136,12 +136,12 @@ function canvasBanda(b, banda, vertical) {
     for (x = banda.ini; x <= banda.fin; x++) for (y = 0; y < b.h; y++) if (b.bin[y * b.w + x]) { if (y < lo) lo = y; if (y > hi) hi = y; }
   }
   if (hi < 0) return null;
- 
+
   var grosor = banda.fin - banda.ini + 1, pad = Math.round(grosor * 0.3);
   var f = Math.max(1, Math.min(4, 90 / grosor));
   var ox = vertical ? banda.ini : lo, oy = vertical ? lo : banda.ini;
   var ancho = vertical ? grosor : hi - lo + 1, alto = vertical ? hi - lo + 1 : grosor;
- 
+
   var tmp = document.createElement("canvas");
   tmp.width = ancho; tmp.height = alto;
   var tc = tmp.getContext("2d"), im = tc.createImageData(ancho, alto), j, k;
@@ -154,7 +154,7 @@ function canvasBanda(b, banda, vertical) {
     }
   }
   tc.putImageData(im, 0, 0);
- 
+
   var c = document.createElement("canvas");
   c.width = Math.round((ancho + 2 * pad) * f);
   c.height = Math.round((alto + 2 * pad) * f);
@@ -167,13 +167,13 @@ function canvasBanda(b, banda, vertical) {
   c.geo = { f: f, pad: pad, ox: ox, oy: oy };
   return c;
 }
- 
+
 // ---------- Análisis: líneas y letras detectadas ----------
 function aOriginal(c, px, py) {
   var g = c.geo, r = geoRecorte;
   return { x: r.x + (px / g.f - g.pad + g.ox) / r.f, y: r.y + (py / g.f - g.pad + g.oy) / r.f };
 }
- 
+
 // Tesseract.js v5 da las letras dentro de blocks > paragraphs > lines > words > symbols
 function simbolos(d) {
   if (d.symbols && d.symbols.length) return d.symbols;
@@ -183,10 +183,10 @@ function simbolos(d) {
   }); }); });
   return res;
 }
- 
+
 function claseConf(c) { return c >= 85 ? "alta" : c >= 60 ? "media" : "baja"; }
 var COLOR = { alta: "#2f8f5b", media: "#d89a1d", baja: "#c23b2e" };
- 
+
 function pintarCapas() {
   var lw = Math.max(1.5, lienzo.width / 500);
   analisis.forEach(function (l, i) {
@@ -202,14 +202,15 @@ function pintarCapas() {
     });
   });
 }
- 
+
 function pintarAnalisis() {
   var cont = $("listaLineas");
   cont.innerHTML = ""; elegida = null;
   analisis.forEach(function (l, i) {
     var f = document.createElement("div"); f.className = "linea";
     var n = document.createElement("span"); n.className = "num";
-    n.textContent = ($("orientacion").value === "vertical" ? "Columna " : "Línea ") + (i + 1) + " · " + l.conf + "%";
+    var nombre = { titulo: "Título", autor: "Autor", extra: "Otro" }[l.rol] || (($("orientacion").value === "vertical" ? "Columna " : "Línea ") + (i + 1));
+    n.textContent = nombre + " · " + l.conf + "%";
     var ls = document.createElement("div"); ls.className = "letras";
     l.letras.forEach(function (t, j) {
       var b = document.createElement("button"); b.type = "button";
@@ -231,7 +232,7 @@ function pintarAnalisis() {
 $("verLineas").addEventListener("change", dibujar);
 $("verLetras").addEventListener("change", dibujar);
 $("usar").addEventListener("click", function () { ir("poema"); });
- 
+
 $("archivo").addEventListener("change", function (e) {
   var f = e.target.files[0];
   if (!f) return;
@@ -245,7 +246,7 @@ $("archivo").addEventListener("change", function (e) {
   };
   img.src = URL.createObjectURL(f);
 });
- 
+
 $("leer").addEventListener("click", async function () {
   var estado = $("estado"), boton = $("leer");
   if (!imgActual) { estado.textContent = "Sube una imagen primero."; return; }
@@ -261,11 +262,11 @@ $("leer").addEventListener("click", async function () {
       estado.textContent = "No se detectó texto. Marca mejor la zona o prueba la otra orientación.";
       return;
     }
- 
+
     estado.textContent = "Cargando el idioma... la primera vez tarda.";
     w = await Tesseract.createWorker(vertical ? "chi_sim_vert" : "chi_sim", 1, {});
     await w.setParameters({ tessedit_pageseg_mode: vertical ? "5" : "7" });
- 
+
     var res = [];
     for (var i = 0; i < bandas.length; i++) {
       estado.textContent = "Leyendo " + (vertical ? "columna " : "verso ") + (i + 1) + " de " + bandas.length + "...";
@@ -283,16 +284,20 @@ $("leer").addEventListener("click", async function () {
       var media = letras.length ? Math.round(letras.reduce(function (s, t) { return s + t.conf; }, 0) / letras.length) : 0;
       res.push({ texto: texto, conf: media, x0: p0.x, y0: p0.y, x1: p1.x, y1: p1.y, letras: letras });
     }
- 
+
     if (!res.length) {
       estado.textContent = "No se detectó texto. Prueba otra foto u otra orientación.";
     } else {
-      $("texto").value = res.map(function (l) { return l.texto; }).join("\n");
+      var info = detectarTitulo(res, vertical);
+      res.forEach(function (l, i) { l.rol = info.roles[i] || ""; });
+      $("texto").value = res.slice(info.ini).map(function (l) { return l.texto; }).join("\n");
+      if (info.titulo) $("titulo").value = info.titulo;
       analisis = res;
       pintarAnalisis();
       dibujar();
       estado.textContent = res.length + (vertical ? " columnas" : " líneas") + " y " +
-        res.reduce(function (s, l) { return s + l.letras.length; }, 0) + " letras detectadas.";
+        res.reduce(function (s, l) { return s + l.letras.length; }, 0) + " letras detectadas." +
+        (info.titulo ? " Título: «" + info.titulo + "»." : " No se detectó el título: escríbelo si lo necesitas.");
     }
   } catch (err) {
     estado.textContent = "No se pudo leer. Abre la web con Live Server, no con doble clic.";
@@ -302,13 +307,64 @@ $("leer").addEventListener("click", async function () {
     boton.disabled = false;
   }
 });
- 
+
+// ---------- Título: se detecta solo ----------
+function nChars(t) { return Array.from(t).length; }
+// Fracción de caracteres iguales en la misma posición (tolera algún fallo del OCR)
+function parecido(a, b) {
+  var x = Array.from(a), y = Array.from(b), n = Math.max(x.length, y.length), ok = 0;
+  for (var i = 0; i < Math.min(x.length, y.length); i++) if (x[i] === y[i]) ok++;
+  return n ? ok / n : 0;
+}
+function esVersoDe(p, texto) {
+  return p.versos.some(function (v) { return parecido(texto, v) >= 0.6; });
+}
+// Si los versos leídos son de un poema de la biblioteca, el título es seguro
+function poemaConocido(res) {
+  var mejor = null, puntos = 0;
+  POEMAS.forEach(function (p) {
+    var hechos = p.versos.filter(function (v) {
+      return res.some(function (l) { return parecido(l.texto, v) >= 0.6; });
+    }).length / p.versos.length;
+    if (hechos > puntos) { puntos = hechos; mejor = p; }
+  });
+  return puntos >= 0.75 ? mejor : null;
+}
+// Devuelve { titulo, ini, roles }: ini = primera línea que ya es verso
+function detectarTitulo(res, vertical) {
+  var out = { titulo: "", ini: 0, roles: {} }, i;
+  var conocido = poemaConocido(res);
+  if (conocido) {
+    var primero = res.findIndex(function (l) { return esVersoDe(conocido, l.texto); });
+    out.titulo = conocido.titulo; out.ini = Math.max(0, primero);
+    for (i = 0; i < out.ini; i++) out.roles[i] = i === 0 ? "titulo" : i === 1 ? "autor" : "extra";
+    return out;
+  }
+  if (res.length < 3) return out;
+  // Los versos tienen casi todos la misma longitud (5 o 7 letras)
+  var cuenta = {}, m = 0, veces = 0;
+  res.forEach(function (l) { var n = nChars(l.texto); cuenta[n] = (cuenta[n] || 0) + 1; });
+  Object.keys(cuenta).forEach(function (k) {
+    if (cuenta[k] > veces || (cuenta[k] === veces && +k > m)) { veces = cuenta[k]; m = +k; }
+  });
+  if (veces < 2) return out;
+  var grosor = function (l) { return vertical ? l.x1 - l.x0 : l.y1 - l.y0; };
+  var gr = res.slice(1).map(grosor).sort(function (a, b) { return a - b; }), med = gr[Math.floor(gr.length / 2)];
+  var largo = nChars(res[0].texto);
+  // El título es más corto (o largo) que los versos, o está escrito con letra más grande
+  if (largo > 8 || !(Math.abs(largo - m) >= 2 || grosor(res[0]) >= 1.25 * med)) return out;
+  out.titulo = res[0].texto; out.ini = 1; out.roles[0] = "titulo";
+  // Una línea corta entre el título y los versos es el autor
+  if (nChars(res[1].texto) <= 4 && nChars(res[1].texto) !== m && nChars(res[2].texto) === m) { out.ini = 2; out.roles[1] = "autor"; }
+  return out;
+}
+
 // ---------- Poema ----------
 $("invertir").addEventListener("click", function () {
   $("texto").value = $("texto").value.split("\n").reverse().join("\n");
 });
 $("borrar").addEventListener("click", function () { $("texto").value = ""; });
- 
+
 // ---------- Pinyin ----------
 function mostrarPinyin() {
   var cont = $("salidaPinyin");
@@ -316,7 +372,7 @@ function mostrarPinyin() {
   cont.innerHTML = "";
   if (!versos.length) { cont.textContent = "Aún no hay poema."; return; }
   if (typeof pinyinPro === "undefined") { cont.textContent = "No se pudo cargar el pinyin."; return; }
- 
+
   versos.forEach(function (v) {
     v = v.trim();
     var py = pinyinPro.pinyin(v, { type: "array" });
@@ -332,12 +388,12 @@ function mostrarPinyin() {
     cont.appendChild(linea);
   });
 }
- 
+
 // ---------- Escuchar (con pausas) ----------
 var PAUSA_SIGNO = 500;   // milisegundos tras cada coma, punto, etc.
 var PAUSA_LINEA = 500;   // milisegundos al cambiar de verso o de párrafo
 var idHabla = 0;
- 
+
 // Parte el texto en trozos y apunta cuánto parar después de cada uno
 function trozos(texto) {
   var piezas = texto.match(/[^，。！？、；：,.;:!?\n]+|[，。！？、；：,.;:!?]|\n+/g) || [];
@@ -354,15 +410,15 @@ function trozos(texto) {
   });
   return lista;
 }
- 
+
 $("hablar").addEventListener("click", function () {
   var t = $("texto").value.trim();
   if (!t) { $("aviso").textContent = "Aún no hay poema."; return; }
   $("aviso").textContent = "";
- 
+
   var lista = trozos(t), i = 0, mio = ++idHabla;
   speechSynthesis.cancel();
- 
+
   function siguiente() {
     if (mio !== idHabla || i >= lista.length) return;
     var trozo = lista[i++];
@@ -375,12 +431,12 @@ $("hablar").addEventListener("click", function () {
   }
   siguiente();
 });
- 
+
 $("parar").addEventListener("click", function () {
   idHabla++;
   speechSynthesis.cancel();
 });
- 
+
 // ---------- Poemas de los lados ----------
 function cargarLado(p) {
   $("texto").value = p.dataset.poema;
@@ -390,7 +446,7 @@ function cargarLado(p) {
 document.querySelectorAll(".lado").forEach(function (p) {
   p.addEventListener("click", function () { cargarLado(p); });
 });
- 
+
 function guardarLados() {
   var lista = [];
   document.querySelectorAll(".lado.propio").forEach(function (p) {
@@ -398,14 +454,14 @@ function guardarLados() {
   });
   try { localStorage.setItem("poemasLados", JSON.stringify(lista)); } catch (e) {}
 }
- 
+
 function crearLado(titulo, texto) {
   var versos = texto.split("\n");
   var a = document.createElement("article");
   a.className = "lado propio";
   a.dataset.poema = texto;
   a.title = "Clic para cargarlo";
- 
+
   var h = document.createElement("h3");
   h.textContent = titulo;
   var cont = document.createElement("div");
@@ -427,12 +483,12 @@ function crearLado(titulo, texto) {
   });
   a.appendChild(x); a.appendChild(h); a.appendChild(cont);
   a.addEventListener("click", function () { cargarLado(a); });
- 
+
   // Se coloca en el lado que tenga menos poemas
   var izq = document.querySelector(".izq"), der = document.querySelector(".der");
   (izq.children.length <= der.children.length ? izq : der).appendChild(a);
 }
- 
+
 function anadirALados(titulo, texto) {
   var repetido = Array.prototype.some.call(document.querySelectorAll(".lado"), function (p) {
     return p.dataset.poema === texto;
@@ -442,7 +498,7 @@ function anadirALados(titulo, texto) {
   guardarLados();
   return "Añadido a los lados.";
 }
- 
+
 $("fijar").addEventListener("click", function () {
   var texto = $("texto").value.split("\n")
     .map(function (l) { return l.trim(); })
@@ -452,17 +508,17 @@ $("fijar").addEventListener("click", function () {
     ? anadirALados($("titulo").value.trim() || "Sin título", texto)
     : "Escribe un poema primero.";
 });
- 
+
 // Recupera los poemas añadidos en visitas anteriores
 try {
   JSON.parse(localStorage.getItem("poemasLados") || "[]").forEach(function (p) { crearLado(p.t, p.v); });
 } catch (e) {}
- 
+
 // ---------- Buscar poemas ----------
 function norm(t) {
   return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
- 
+
 // Busca en la biblioteca (poemas.js) y en los poemas de tu cuenta
 async function buscarPoemas(q) {
   q = norm(q.trim());
@@ -476,7 +532,7 @@ async function buscarPoemas(q) {
     return norm([p.titulo, p.titulo_es, p.autor, p.autor_pinyin, p.dinastia, v, py, (p.traduccion || []).join(" "), p.nota].join(" ")).indexOf(q) >= 0;
   });
 }
- 
+
 // ---------- Cuenta y base de datos (Supabase) ----------
 var nube = { sb: null, user: null, cache: null };
 function iniciarNube() {
@@ -588,7 +644,7 @@ $("nube").addEventListener("click", async function () {
   msg.textContent = "Guardado en tu cuenta.";
 });
 iniciarNube();
- 
+
 async function mostrarBusqueda() {
   var cont = $("resultados");
   var res = await buscarPoemas($("consulta").value);
@@ -597,11 +653,11 @@ async function mostrarBusqueda() {
     cont.textContent = $("fuente").value === "mios" && !nube.user ? "Entra con tu cuenta para buscar en tus poemas." : "No se encontró ningún poema.";
     return;
   }
- 
+
   res.forEach(function (p) {
     var d = document.createElement("div");
     d.className = "resultado";
- 
+
     var h = document.createElement("h3");
     h.textContent = p.titulo;
     if (p.origen === "mio") { var et = document.createElement("span"); et.className = "etiqueta"; et.textContent = "Mío"; h.prepend(et); }
@@ -611,7 +667,7 @@ async function mostrarBusqueda() {
     var pr = document.createElement("div");
     pr.className = "primero";
     pr.textContent = p.versos[0] + " …" + (p.traduccion && p.traduccion[0] ? " · " + p.traduccion[0] : "");
- 
+
     var abrir = document.createElement("button");
     abrir.type = "button";
     abrir.textContent = "Abrir";
@@ -620,7 +676,7 @@ async function mostrarBusqueda() {
       $("titulo").value = p.titulo;
       ir("poema");
     });
- 
+
     var trad = document.createElement("button");
     trad.type = "button";
     trad.textContent = "🌐 Traducir";
@@ -629,7 +685,7 @@ async function mostrarBusqueda() {
       $("titulo").value = p.titulo;
       ir("traducir");
     });
- 
+
     var lados = document.createElement("button");
     lados.type = "button";
     lados.className = "suave";
@@ -637,7 +693,7 @@ async function mostrarBusqueda() {
     lados.addEventListener("click", function () {
       lados.textContent = anadirALados(p.titulo, p.versos.join("\n")) === "Añadido a los lados." ? "✓ Añadido" : "Ya está";
     });
- 
+
     d.appendChild(h); d.appendChild(es); d.appendChild(pr);
     d.appendChild(abrir); d.appendChild(trad); d.appendChild(lados);
     if (p.origen === "mio") {
@@ -654,56 +710,59 @@ async function mostrarBusqueda() {
   });
 }
 $("consulta").addEventListener("input", mostrarBusqueda);
- 
-// ---------- Traducir al español (solo los poemas de la base de datos) ----------
+
+// ---------- Traducir al español (biblioteca, mis poemas y el poema que estás escribiendo) ----------
+var trad = { lista: [] };
 function limpiar(t) { return t.replace(/[\s，。！？、；：《》“”‘’（）,.!?]/g, ""); }
- 
-function encontrarPoema(texto) {
-  var t = limpiar(texto);
-  if (!t) return -1;
-  for (var i = 0; i < POEMAS.length; i++) {
-    if (limpiar(POEMAS[i].versos.join("")) === t) return i;
+
+async function listaTraducibles() {
+  var lista = POEMAS.map(function (p) { return Object.assign({ origen: "biblioteca" }, p); });
+  (await poemasNube()).forEach(function (p) { lista.push(p); });
+  var versos = $("texto").value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+  if (versos.length) {
+    var t = limpiar(versos.join(""));
+    var existe = lista.some(function (p) { return limpiar(p.versos.join("")) === t; });
+    if (!existe) lista.push({ origen: "actual", titulo: $("titulo").value.trim() || "Poema actual", versos: versos, traduccion: [] });
   }
-  return -1;
+  return lista;
 }
- 
-function prepararTraduccion() {
-  var sel = $("elegirPoema"), aviso = $("avisoTrad");
-  if (!sel.options.length) {
-    POEMAS.forEach(function (p, i) {
-      var o = document.createElement("option");
-      o.value = i;
-      o.textContent = p.titulo + " · " + p.titulo_es;
-      sel.appendChild(o);
-    });
-  }
-  var texto = $("texto").value;
-  var i = encontrarPoema(texto);
-  if (i >= 0) {
-    sel.value = i;
-    aviso.textContent = "";
-  } else if (texto.trim()) {
-    aviso.textContent = "Ese poema aún no está traducido. Por ahora solo hay " + POEMAS.length + ": elige uno de la lista.";
-  } else {
-    aviso.textContent = "";
-  }
+
+// idMantener: id de un poema de tu cuenta que debe quedar elegido (por ejemplo, tras guardar)
+async function prepararTraduccion(idMantener) {
+  var sel = $("elegirPoema");
+  trad.lista = await listaTraducibles();
+  sel.innerHTML = "";
+  trad.lista.forEach(function (p, i) {
+    var o = document.createElement("option");
+    o.value = i;
+    o.textContent = (p.origen === "mio" ? "Mío · " : p.origen === "actual" ? "Sin guardar · " : "") + p.titulo + (p.titulo_es ? " · " + p.titulo_es : "");
+    sel.appendChild(o);
+  });
+  var texto = limpiar($("texto").value), i = -1;
+  if (typeof idMantener === "string") i = trad.lista.findIndex(function (p) { return p.id === idMantener; });
+  else if (texto) i = trad.lista.findIndex(function (p) { return limpiar(p.versos.join("")) === texto; });
+  if (i >= 0) sel.value = i;
   mostrarTraduccion();
 }
- 
+
+function poemaTrad() { return trad.lista[$("elegirPoema").value]; }
+
 function mostrarTraduccion() {
-  var p = POEMAS[$("elegirPoema").value];
-  var cont = $("traduccion");
+  var p = poemaTrad(), cont = $("traduccion"), propio = p && p.origen !== "biblioteca";
   cont.innerHTML = "";
+  $("msgTrad").textContent = "";
+  $("accionesTrad").hidden = !propio;
+  $("avisoTrad").textContent = propio ? "Escribe la traducción verso a verso, o pulsa «Traducir automáticamente» y corrígela." : "";
   if (!p) return;
- 
+
   var h = document.createElement("h3");
   h.textContent = p.titulo;
   var sub = document.createElement("div");
   sub.className = "es";
-  sub.textContent = p.titulo_es + " · " + p.autor + " " + p.autor_pinyin + " (" + p.dinastia + ")";
+  sub.textContent = [p.titulo_es, [p.autor, p.autor_pinyin].filter(Boolean).join(" "), p.dinastia && "(" + p.dinastia + ")"].filter(Boolean).join(" · ");
   cont.appendChild(h);
   cont.appendChild(sub);
- 
+
   p.versos.forEach(function (v, i) {
     var f = document.createElement("div");
     f.className = "fila";
@@ -717,16 +776,70 @@ function mostrarTraduccion() {
       py.textContent = pinyinPro.pinyin(v);
       f.appendChild(py);
     }
-    var es = document.createElement("div");
-    es.className = "esp";
-    es.textContent = p.traduccion[i];
-    f.appendChild(es);
+    var t = (p.traduccion || [])[i] || "";
+    if (propio) {
+      var campo = document.createElement("input");
+      campo.type = "text"; campo.className = "ent-trad"; campo.value = t;
+      campo.placeholder = "Traducción al español";
+      f.appendChild(campo);
+    } else {
+      var es = document.createElement("div");
+      es.className = "esp";
+      es.textContent = t;
+      f.appendChild(es);
+    }
     cont.appendChild(f);
   });
- 
-  var n = document.createElement("div");
-  n.className = "nota";
-  n.textContent = p.nota;
-  cont.appendChild(n);
+
+  if (p.nota) {
+    var n = document.createElement("div");
+    n.className = "nota";
+    n.textContent = p.nota;
+    cont.appendChild(n);
+  }
 }
 $("elegirPoema").addEventListener("change", mostrarTraduccion);
+
+// Traducción automática (MyMemory): gratis y sin clave, pero aproximada
+async function traducirVerso(v) {
+  var r = await fetch("https://api.mymemory.translated.net/get?langpair=zh-CN%7Ces&q=" + encodeURIComponent(v));
+  var d = await r.json();
+  if (!d.responseData || d.responseStatus != 200) throw new Error(d.responseDetails || "sin respuesta");
+  var t = document.createElement("textarea");
+  t.innerHTML = d.responseData.translatedText; // quita entidades HTML (&quot; etc.)
+  return t.value;
+}
+$("autoTrad").addEventListener("click", async function () {
+  var p = poemaTrad(), msg = $("msgTrad"), btn = $("autoTrad"), campos = document.querySelectorAll("#traduccion .ent-trad");
+  if (!p || p.origen === "biblioteca") return;
+  btn.disabled = true;
+  try {
+    for (var i = 0; i < p.versos.length; i++) {
+      if (campos[i].value.trim()) continue; // no pisa lo que ya has escrito
+      msg.textContent = "Traduciendo verso " + (i + 1) + " de " + p.versos.length + "...";
+      campos[i].value = await traducirVerso(p.versos[i]);
+    }
+    msg.textContent = "Listo. La traducción automática es aproximada: revísala y corrígela antes de guardar.";
+  } catch (err) {
+    console.error(err);
+    msg.textContent = "No se pudo traducir automáticamente. Escríbela a mano.";
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// Guarda la traducción en tu cuenta (poema ya guardado: la actualiza; poema nuevo: lo guarda con ella)
+$("guardarTrad").addEventListener("click", async function () {
+  var p = poemaTrad(), msg = $("msgTrad");
+  if (!p || p.origen === "biblioteca") return;
+  var t = Array.prototype.map.call(document.querySelectorAll("#traduccion .ent-trad"), function (c) { return c.value.trim(); });
+  if (!t.some(Boolean)) { msg.textContent = "Escribe al menos un verso traducido."; return; }
+  if (!nube.user) { msg.textContent = "Entra con tu cuenta para guardar la traducción."; ponerModo(false); verCuenta(true); return; }
+  var r = p.origen === "mio"
+    ? await nube.sb.from("poemas").update({ traduccion: t }).eq("id", p.id)
+    : await nube.sb.from("poemas").insert({ titulo: p.titulo, versos: p.versos, traduccion: t });
+  if (r.error) { console.error(r.error); msg.textContent = "No se pudo guardar: " + r.error.message; return; }
+  nube.cache = null;
+  await prepararTraduccion(p.origen === "mio" ? p.id : undefined);
+  $("msgTrad").textContent = "Traducción guardada en tu cuenta.";
+});

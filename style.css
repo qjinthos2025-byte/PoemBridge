@@ -59,6 +59,7 @@ aside{display:flex;flex-direction:column;gap:1.2rem;align-items:center}
 .fila .zh{font-size:1.5rem}
 .fila .py{color:var(--cinabrio);font-size:.9rem}
 .fila .esp{font-style:italic}
+#accionesTrad{margin-top:1rem}
 .nota{margin-top:1rem;padding:.7rem 1rem;background:#eef2ea;border-left:3px solid var(--jade);border-radius:4px;color:#33403a}
 
 /* Análisis de líneas y letras (Tesseract) */
