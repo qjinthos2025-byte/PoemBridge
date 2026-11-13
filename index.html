@@ -93,33 +93,52 @@
   </aside>
 </div>
 
-<dialog id="dlgCuenta">
-  <div class="cuenta-caja">
-    <div class="cuenta-lado">
-      <span class="sello">诗</span>
-      <div class="versos">床前明月光<br>疑是地上霜<br>举头望明月<br>低头思故乡</div>
-      <small>李白 · 静夜思</small>
-    </div>
-    <form id="formCuenta" class="cuenta-form" novalidate>
-      <button id="cerrarDlg" type="button" class="cerrar" aria-label="Cerrar">×</button>
-      <h3 id="tituloCuenta">Bienvenido de nuevo</h3>
-      <p class="sub" id="subCuenta">Entra para guardar y buscar tus poemas.</p>
-      <div class="pestanas" role="tablist">
-        <button type="button" id="tabEntrar" class="activa" role="tab">Entrar</button>
-        <button type="button" id="tabCrear" role="tab">Crear cuenta</button>
-      </div>
-      <label for="correo">Correo electrónico</label>
-      <input type="email" id="correo" placeholder="tu@correo.com" autocomplete="email" required>
-      <label for="clave">Contraseña</label>
-      <div class="clave-fila">
-        <input type="password" id="clave" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required>
-        <button type="button" id="verClave" class="suave">Ver</button>
-      </div>
-      <p id="errCuenta" class="aviso" role="alert"></p>
-      <button id="btnLogin" type="submit" class="grande">Entrar</button>
-    </form>
+<section id="vistaCuenta" hidden>
+  <div class="cuenta-arte" aria-hidden="true">
+    <div class="luna"></div>
+    <div class="cuenta-versos"><div>床前明月光</div><div>疑是地上霜</div><div>举头望明月</div><div>低头思故乡</div></div>
+    <p class="cuenta-firma">李白, 静夜思</p>
+    <p class="sello">诗</p>
   </div>
-</dialog>
+  <div class="cuenta-panel">
+    <div class="cuenta-interior">
+      <button id="volver" type="button" class="enlace">← Volver a PoemBridge</button>
+
+      <div id="cuentaForm">
+        <h2 id="tituloCuenta">Bienvenido de nuevo</h2>
+        <p class="sub" id="subCuenta">Entra para guardar y buscar tus poemas.</p>
+        <div class="pestanas" role="tablist">
+          <button type="button" id="tabEntrar" class="activa" role="tab">Entrar</button>
+          <button type="button" id="tabCrear" role="tab">Crear cuenta</button>
+        </div>
+        <form id="formCuenta" novalidate>
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo" placeholder="tu@correo.com" autocomplete="email" required>
+          <label for="clave">Contraseña</label>
+          <div class="clave-fila">
+            <input type="password" id="clave" placeholder="Mínimo 6 caracteres" autocomplete="current-password" required>
+            <button type="button" id="verClave" class="suave">Ver</button>
+          </div>
+          <p id="errCuenta" class="aviso" role="alert"></p>
+          <button id="btnLogin" type="submit" class="grande">Entrar</button>
+        </form>
+        <ul class="ventajas">
+          <li>Guarda los poemas que leas o escribas.</li>
+          <li>Búscalos junto a la biblioteca, en chino, pinyin o español.</li>
+          <li>Son privados: solo tú los ves.</li>
+        </ul>
+      </div>
+
+      <div id="cuentaSesion" hidden>
+        <h2>Sesión iniciada</h2>
+        <p id="correoSesion"></p>
+        <p id="numPoemas" class="sub"></p>
+        <button id="verMios" type="button" class="grande">Ver mis poemas</button>
+        <button id="salirPanel" type="button" class="suave grande">Salir</button>
+      </div>
+    </div>
+  </div>
+</section>
 
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.26.0/dist/index.js"></script>
