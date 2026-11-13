@@ -463,8 +463,7 @@ function norm(t) {
   return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-// Ahora busca en poemas.js. Para usar una base de datos real, sustituye el cuerpo
-// por una petición, por ejemplo: return (await fetch("/api/poemas?q=" + q)).json();
+// Busca en la biblioteca (poemas.js) y en los poemas de tu cuenta
 async function buscarPoemas(q) {
   q = norm(q.trim());
   var f = $("fuente").value, lista = [];
@@ -481,7 +480,7 @@ async function buscarPoemas(q) {
 // ---------- Cuenta y base de datos (Supabase) ----------
 var nube = { sb: null, user: null, cache: null };
 function iniciarNube() {
-  if (typeof supabase === "undefined" || !window.SUPABASE_URL) {
+  if (typeof supabase === "undefined") { // sin conexión: la web sigue funcionando sin cuenta
     $("cuenta").hidden = true;
     document.querySelector("#fuente option[value=mios]").disabled = true;
     return;
@@ -489,10 +488,32 @@ function iniciarNube() {
   nube.sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   nube.sb.auth.onAuthStateChange(function (_e, ses) {
     nube.user = ses ? ses.user : null; nube.cache = null;
-    $("entrar").hidden = !!nube.user; $("salir").hidden = !nube.user;
+    $("entrar").textContent = nube.user ? "Mi cuenta" : "Entrar";
+    $("salir").hidden = !nube.user;
     $("usuario").textContent = nube.user ? nube.user.email : "";
-    setTimeout(function () { if (!$("buscar").hidden) mostrarBusqueda(); }, 0);
+    setTimeout(function () {
+      if (!$("vistaCuenta").hidden) actualizarCuenta();
+      if (!$("buscar").hidden) mostrarBusqueda();
+    }, 0);
   });
+}
+// Pantalla de cuenta: formulario si no hay sesión, resumen si la hay
+function verCuenta(si) {
+  document.body.classList.toggle("en-cuenta", si);
+  $("vistaCuenta").hidden = !si;
+  if (!si) return;
+  window.scrollTo(0, 0);
+  actualizarCuenta();
+  (nube.user ? $("verMios") : $("correo")).focus();
+}
+async function actualizarCuenta() {
+  var dentro = !!nube.user;
+  $("cuentaForm").hidden = dentro; $("cuentaSesion").hidden = !dentro;
+  if (!dentro) return;
+  $("correoSesion").textContent = nube.user.email;
+  $("numPoemas").textContent = "Cargando tus poemas...";
+  var n = (await poemasNube()).length;
+  $("numPoemas").textContent = n === 1 ? "Tienes 1 poema guardado." : "Tienes " + n + " poemas guardados.";
 }
 async function poemasNube() {
   if (!nube.user) return [];
@@ -518,9 +539,10 @@ function ponerModo(crear) {
   $("clave").autocomplete = crear ? "new-password" : "current-password";
   $("errCuenta").textContent = ""; $("errCuenta").className = "aviso";
 }
-$("entrar").addEventListener("click", function () { ponerModo(false); $("dlgCuenta").showModal(); $("correo").focus(); });
-$("cerrarDlg").addEventListener("click", function () { $("dlgCuenta").close(); });
-$("dlgCuenta").addEventListener("click", function (e) { if (e.target === $("dlgCuenta")) $("dlgCuenta").close(); });
+$("entrar").addEventListener("click", function () { ponerModo(false); verCuenta(true); });
+$("volver").addEventListener("click", function () { verCuenta(false); });
+document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !$("vistaCuenta").hidden) verCuenta(false); });
+$("verMios").addEventListener("click", function () { verCuenta(false); $("fuente").value = "mios"; ir("buscar"); });
 $("tabEntrar").addEventListener("click", function () { ponerModo(false); });
 $("tabCrear").addEventListener("click", function () { ponerModo(true); });
 $("verClave").addEventListener("click", function () {
@@ -528,7 +550,9 @@ $("verClave").addEventListener("click", function () {
   $("clave").type = oculta ? "text" : "password";
   $("verClave").textContent = oculta ? "Ocultar" : "Ver";
 });
-$("salir").addEventListener("click", function () { nube.sb.auth.signOut(); });
+["salir", "salirPanel"].forEach(function (id) {
+  $(id).addEventListener("click", function () { nube.sb.auth.signOut(); });
+});
 var MENSAJES = {
   "Invalid login credentials": "Correo o contraseña incorrectos.",
   "User already registered": "Ya existe una cuenta con ese correo. Prueba a entrar.",
@@ -544,13 +568,13 @@ $("formCuenta").addEventListener("submit", async function (e) {
   btn.disabled = false;
   if (r.error) { err.textContent = MENSAJES[r.error.message] || r.error.message; return; }
   if (modoCrear && !r.data.session) { err.className = "aviso ok"; err.textContent = "Cuenta creada. Revisa tu correo para confirmarla y entra después."; return; }
-  $("clave").value = ""; $("dlgCuenta").close();
+  $("clave").value = "";
 });
 $("fuente").addEventListener("change", mostrarBusqueda);
 $("nube").addEventListener("click", async function () {
   var versos = $("texto").value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean), msg = $("msgLado");
   if (!versos.length) { msg.textContent = "Escribe un poema primero."; return; }
-  if (!nube.user) { msg.textContent = "Entra con tu cuenta para guardar en la nube."; ponerModo(false); $("dlgCuenta").showModal(); return; }
+  if (!nube.user) { msg.textContent = "Entra con tu cuenta para guardar en la nube."; ponerModo(false); verCuenta(true); return; }
   var r = await nube.sb.from("poemas").insert({ titulo: $("titulo").value.trim() || "Sin título", versos: versos });
   if (r.error) { console.error(r.error); msg.textContent = "No se pudo guardar: " + r.error.message; return; }
   nube.cache = null;
