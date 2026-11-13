@@ -11,3 +11,20 @@ Uso: sube la foto, arrastra el ratón para marcar solo el poema (sin pinyin ni
 dibujos), elige horizontal o vertical y pulsa Leer.
 La primera lectura tarda más porque descarga el idioma chino.
 El resto de apartados funciona también con doble clic.
+
+IA que revisa a Tesseract (opcional)
+====================================
+Tras leer la foto, la web envía el recorte y la lectura a la función
+"verificar-ocr" (carpeta supabase/functions), que consulta a Gemini y devuelve
+la lectura corregida. Solo funciona con la sesión iniciada. La clave vive en
+Supabase como secreto, nunca en la web. Es gratis: usa la capa gratuita de
+Google Gemini (sin tarjeta) y el plan gratuito de Supabase.
+
+1) Crea una clave gratis en https://aistudio.google.com/apikey (con tu cuenta de Google).
+2) Despliegue (una vez, desde esta carpeta, con la CLI de Supabase instalada):
+  supabase login
+  supabase link --project-ref wzbnbzkngdjvnkqgqufg
+  supabase secrets set GEMINI_API_KEY=tu_clave
+  supabase functions deploy verificar-ocr
+
+Para desactivarla: en supabase-config.js pon  var IA_VERIFICAR = false;

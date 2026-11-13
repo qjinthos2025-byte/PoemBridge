@@ -252,10 +252,11 @@ $("leer").addEventListener("click", async function () {
   if (!imgActual) { estado.textContent = "Sube una imagen primero."; return; }
   var vertical = $("orientacion").value === "vertical";
   boton.disabled = true;
+  $("ia").hidden = true;
   estado.textContent = "Preparando la imagen...";
   var w = null;
   try {
-    var b = binarizar(recorteCanvas());
+    var recorte = recorteCanvas(), b = binarizar(recorte);
     var bandas = bandasDeTexto(encontrarBandas(perfil(b, vertical)));
     if (vertical) bandas.reverse(); // las columnas se leen de derecha a izquierda
     if (!bandas.length) {
@@ -285,6 +286,7 @@ $("leer").addEventListener("click", async function () {
       res.push({ texto: texto, conf: media, x0: p0.x, y0: p0.y, x1: p1.x, y1: p1.y, letras: letras });
     }
 
+    await w.terminate(); w = null; // Tesseract ya ha terminado: se libera antes de esperar a la IA
     if (!res.length) {
       estado.textContent = "No se detectó texto. Prueba otra foto u otra orientación.";
     } else {
@@ -298,6 +300,7 @@ $("leer").addEventListener("click", async function () {
       estado.textContent = res.length + (vertical ? " columnas" : " líneas") + " y " +
         res.reduce(function (s, l) { return s + l.letras.length; }, 0) + " letras detectadas." +
         (info.titulo ? " Título: «" + info.titulo + "»." : " No se detectó el título: escríbelo si lo necesitas.");
+      await verificarConIA(recorte, res, info, vertical);
     }
   } catch (err) {
     estado.textContent = "No se pudo leer. Abre la web con Live Server, no con doble clic.";
@@ -358,6 +361,67 @@ function detectarTitulo(res, vertical) {
   if (nChars(res[1].texto) <= 4 && nChars(res[1].texto) !== m && nChars(res[2].texto) === m) { out.ini = 2; out.roles[1] = "autor"; }
   return out;
 }
+
+// ---------- IA que revisa la lectura de Tesseract ----------
+var iaAntes = null;
+
+// Compara lo que leyó Tesseract con lo que devuelve la IA
+function diferenciasIA(antes, despues) {
+  if (antes.length !== despues.length) return ["La IA ha reorganizado los versos (antes " + antes.length + ", ahora " + despues.length + ")."];
+  var res = [];
+  antes.forEach(function (a, i) {
+    if (a === despues[i]) return;
+    var x = Array.from(a), y = Array.from(despues[i]);
+    if (x.length !== y.length) { res.push("Verso " + (i + 1) + ": «" + a + "» → «" + despues[i] + "»"); return; }
+    x.forEach(function (c, j) { if (c !== y[j]) res.push("Verso " + (i + 1) + ", letra " + (j + 1) + ": " + c + " → " + y[j]); });
+  });
+  return res;
+}
+
+async function verificarConIA(recorte, res, info, vertical) {
+  var ia = $("ia"), est = $("iaEstado"), lista = $("iaLista"), undo = $("iaDeshacer");
+  lista.innerHTML = ""; undo.hidden = true; iaAntes = null;
+  if (!window.IA_VERIFICAR || !nube.sb) { ia.hidden = true; return; }
+  ia.hidden = false;
+  if (!nube.user) { est.textContent = "Entra en tu cuenta para que la IA revise la lectura de Tesseract."; return; }
+  est.textContent = "La IA está revisando la lectura...";
+  try {
+    var dudosas = [];
+    res.forEach(function (l, i) {
+      l.letras.forEach(function (t, j) { if (t.conf < 70) dudosas.push({ linea: i + 1, posicion: j + 1, letra: t.t, confianza: t.conf }); });
+    });
+    var r = await nube.sb.functions.invoke("verificar-ocr", { body: {
+      imagen: recorte.toDataURL("image/jpeg", 0.85).split(",")[1],
+      lineas: res.map(function (l) { return l.texto; }),
+      dudosas: dudosas.slice(0, 40),
+      vertical: vertical
+    } });
+    if (r.error) throw r.error;
+    var versos = (r.data.versos || []).map(function (v) { return String(v).replace(NO_ZH, ""); }).filter(Boolean);
+    if (!versos.length) throw new Error("la IA no devolvió versos");
+
+    var cambios = diferenciasIA(res.slice(info.ini).map(function (l) { return l.texto; }), versos);
+    var titulo = String(r.data.titulo || "").replace(NO_ZH, "");
+    if (titulo && titulo !== $("titulo").value) cambios.push("Título: " + (info.titulo ? info.titulo + " → " : "") + titulo);
+    if (!cambios.length) { est.textContent = "La IA ha revisado la lectura y todo coincide."; return; }
+
+    iaAntes = { texto: $("texto").value, titulo: $("titulo").value };
+    $("texto").value = versos.join("\n");
+    if (titulo) $("titulo").value = titulo;
+    est.textContent = "La IA ha corregido la lectura (" + cambios.length + (cambios.length === 1 ? " cambio" : " cambios") + "):";
+    cambios.forEach(function (c) { var li = document.createElement("li"); li.textContent = c; lista.appendChild(li); });
+    undo.hidden = false;
+  } catch (err) {
+    console.error(err);
+    est.textContent = "No se pudo verificar con la IA. Se mantiene la lectura de Tesseract.";
+  }
+}
+$("iaDeshacer").addEventListener("click", function () {
+  if (!iaAntes) return;
+  $("texto").value = iaAntes.texto; $("titulo").value = iaAntes.titulo; iaAntes = null;
+  $("iaLista").innerHTML = ""; $("iaDeshacer").hidden = true;
+  $("iaEstado").textContent = "Se ha restaurado la lectura de Tesseract.";
+});
 
 // ---------- Poema ----------
 $("invertir").addEventListener("click", function () {
