@@ -1,6 +1,5 @@
-// Base de datos de poemas (por ahora local, con traducción al español).
+// Biblioteca de poemas con traducción al español.
 // Para añadir más, copia un bloque y cambia los datos.
-// Más adelante se podrá sustituir por una base de datos real (ver buscarPoemas en script.js).
 var POEMAS = [
   {
     "titulo": "静夜思",
@@ -32,7 +31,7 @@ var POEMAS = [
       "春眠不觉晓",
       "处处闻啼鸟",
       "夜来风雨声",
-      "花落Final Fantasy VII Remake Intergrade知多少"
+      "花落知多少"
     ],
     "traduccion": [
       "En primavera se duerme sin notar el amanecer",

@@ -11,4 +11,3 @@ Uso: sube la foto, arrastra el ratón para marcar solo el poema (sin pinyin ni
 dibujos), elige horizontal o vertical y pulsa Leer.
 La primera lectura tarda más porque descarga el idioma chino.
 El resto de apartados funciona también con doble clic.
-
