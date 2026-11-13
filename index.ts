@@ -5,7 +5,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 // Modelo con capa gratuita y visión. Si Google lo cambia, pon otro "Flash" aquí.
-const MODELO = "gemini-2.5-flash";
+const MODELO = "gemini-3.8-flash";
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
